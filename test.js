@@ -53,6 +53,7 @@ app.post('/users/', (req, res) => {
       } else {
         const newUser = new User(user);
         newUser.save();
+        ;
         res.status(200).json({ Success: 'All users have been saved' });
       };
     };
