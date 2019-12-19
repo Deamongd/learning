@@ -14,7 +14,10 @@ const User = mongoose.model('Users', {
   email: String,
   birthday: Date,
   password: String,
-  username: String
+  username: {
+    type: String,
+    unique: true
+  }
 });
 
 const userSchema = Joi.object({
@@ -27,8 +30,8 @@ const userSchema = Joi.object({
   idd: Joi.any()
 });
 
-app.post('/users/', (req, res) => {
-  console.log('CREATES USER OR USERS', /* req.body */);
+/* app.post('/users/', (req, res) => {
+  console.log('CREATES USER OR USERS');
 
   const errors = [];
 
@@ -41,8 +44,7 @@ app.post('/users/', (req, res) => {
     if (errors.length > 0) {
       res.status(500).json({ error: errors });
     } else {
-      const rbody = req.body;
-      const usernames = rbody.map(user => user.username);
+      const usernames = Bah.map(user => user.username);
       console.log(usernames)
       const data = User.find({ username: { $in: usernames } });
       if (data && data.length > 0) {
@@ -53,11 +55,40 @@ app.post('/users/', (req, res) => {
       } else {
         const newUser = new User(user);
         newUser.save();
-        ;
         res.status(200).json({ Success: 'All users have been saved' });
       };
     };
   });
+}); */
+
+/*
+  1. validate data using joi
+  2. if invalid respond with errors
+  3. else save users
+*/
+
+app.post('/users/', (req, res) => {
+  const body = req.body;
+  const errors = [];
+
+  body.forEach(user => {
+    const valid = userSchema.validate(user);
+    if (valid.error) {
+      errors.push(valid.error);
+    }
+  });
+
+  if (errors.length > 0) {
+    res.status(500).json(errors);
+  } else {
+    User.insertMany(body, (err, data) => {
+      if (err) {
+        res.status(500).json({ err });
+      } else {
+        res.status(200).json(data);
+      }
+    });
+  }
 });
 
 app.listen(PORT, () => console.log(`APP listens on port ${PORT}`));
